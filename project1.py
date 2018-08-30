@@ -12,6 +12,7 @@ import struct
 import time
 
 import math
+from tkinter import *
 
 servers = ["0.us.pool.ntp.org",
 "2.us.pool.ntp.org",
@@ -88,6 +89,46 @@ if __name__ == "__main__":
     # Get the max discrepancy
     max_svr_name = max(discrepancies, key=discrepancies.get)
     print("\n{} has the max discrepancy of {}".format(max_svr_name, discrepancies[max_svr_name]))
+
+    # Create histograms
+    window = Tk()
+
+    num_items = len(discrepancies.items())
+
+    initial_spacing = 30
+    text_spacing = 150
+    bar_spacing = 5
+    bar_height = 25
+
+    canvas_width = 700
+    canvas_height = initial_spacing + (num_items)*bar_spacing + bar_height*num_items
+
+    bar_width_scale = (canvas_width-text_spacing)/discrepancies[max_svr_name]*0.9
+
+    graph_base_x = text_spacing
+
+    hist_canvas = Canvas(window, width=canvas_width, height=canvas_height)
+    hist_canvas.pack()
+
+    # Create grid lines on side of histogram
+    for i in range(graph_base_x, canvas_width-10, 70):
+        label = "{}s".format(round(abs((i-graph_base_x)/bar_width_scale)*1000)/1000)
+        hist_canvas.create_text(i,0,text=label, anchor=N)
+        hist_canvas.create_line(i,15,i,25)
+
+    # Draw bars for each server with a response
+    y = initial_spacing
+    for k, v in discrepancies.items():
+        bar_width = v*bar_width_scale
+        if(v > 1):
+            hist_canvas.create_rectangle(graph_base_x, y, graph_base_x+bar_width, y+bar_height, fill='red', outline='red')
+        else:
+            hist_canvas.create_rectangle(graph_base_x, y, graph_base_x+bar_width, y+bar_height, fill='green', outline='green')
+
+        hist_canvas.create_text(5,y+.5*bar_height, text=k, anchor=W)
+        y += bar_spacing + bar_height
+
+    window.mainloop()
     
 
 
